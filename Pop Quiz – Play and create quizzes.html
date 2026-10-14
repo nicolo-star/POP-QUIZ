@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pop Quiz – Play and create quizzes</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#e6f8ec;--bg2:#eaf7d9;--bg3:#dff5f0;--card:rgba(255,255,255,.8);--card-solid:#fff;--text:#12301f;--muted:#58705f;
+  --accent:#16803c;--accent-2:#2fb45c;--lime:#a3d934;--line:rgba(22,128,60,.16);--ok:#12803c;--bad:#d9455f;--shadow:0 10px 40px -14px rgba(20,100,50,.35);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg1:#0e1d15;--bg2:#13200f;--bg3:#0d2222;--card:rgba(25,50,36,.75);--card-solid:#1a3526;--text:#e8f6ec;--muted:#9bbba6;
+  --accent:#5fdc8a;--accent-2:#2fb45c;--lime:#b6e24a;--line:rgba(95,220,138,.2);--ok:#5fdc8a;--bad:#ff7a92;--shadow:0 10px 40px -14px rgba(0,0,0,.7);}}
+:root[data-theme="dark"]{--bg1:#0e1d15;--bg2:#13200f;--bg3:#0d2222;--card:rgba(25,50,36,.75);--card-solid:#1a3526;--text:#e8f6ec;--muted:#9bbba6;--accent:#5fdc8a;--accent-2:#2fb45c;--lime:#b6e24a;--line:rgba(95,220,138,.2);--ok:#5fdc8a;--bad:#ff7a92;--shadow:0 10px 40px -14px rgba(0,0,0,.7)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;font-family:"DM Sans",system-ui,sans-serif;color:var(--text);line-height:1.55;
+  background:radial-gradient(900px 500px at 5% -10%,var(--bg1),transparent 70%),radial-gradient(800px 500px at 100% 10%,var(--bg2),transparent 70%),radial-gradient(900px 600px at 50% 110%,var(--bg3),transparent 70%),var(--bg1);background-attachment:fixed}
+.wrap{max-width:1000px;margin:0 auto;padding:12px 20px 60px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700;letter-spacing:-.015em;margin:0}
+h1{font-size:clamp(2.6rem,9vw,4.4rem);line-height:1.02;background:linear-gradient(120deg,var(--accent),var(--lime) 90%);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.08em}
+.sub{color:var(--muted);font-size:1.1rem;max-width:46ch;margin:14px 0 24px}
+.card{background:var(--card);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+.sec{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:34px 0 14px;flex-wrap:wrap}
+.sec h3{font-size:1.3rem}
+.subjects{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.subj{position:relative;overflow:hidden;padding:0}
+.subj>button.go{font:inherit;color:inherit;text-align:left;padding:22px;cursor:pointer;width:100%;background:none;border:0;display:flex;flex-direction:column;gap:4px;position:relative;z-index:1}
+.subj::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:var(--h);opacity:.5}
+.subj{transition:transform .2s}.subj:hover{transform:translateY(-4px)}
+.ico{width:48px;height:48px;border-radius:14px;background:var(--h);display:grid;place-items:center;font-size:1.5rem;margin-bottom:8px}
+.subj b{font-family:Fraunces,serif;font-size:1.3rem}
+.subj span{color:var(--muted);font-size:.92rem}
+.tools{display:flex;gap:6px;padding:0 14px 14px;position:relative;z-index:1}
+.chip{font:inherit;font-size:.85rem;font-weight:700;color:var(--accent);background:var(--card-solid);border:1px solid var(--line);border-radius:10px;padding:5px 11px;cursor:pointer}
+.chip.del{color:var(--bad)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.empty{padding:24px;text-align:center;color:var(--muted);border:2px dashed var(--line);border-radius:18px}
+.top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.back{font:inherit;background:none;border:0;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:10px}
+.back:hover{color:var(--accent)}
+.bar{height:8px;background:var(--line);border-radius:8px;flex:1;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--lime));border-radius:8px;transition:width .5s cubic-bezier(.3,.9,.3,1)}
+.meta{font-size:.92rem;color:var(--muted);white-space:nowrap}
+.q{padding:32px 28px;animation:rise .4s ease}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.q h2{font-size:clamp(1.45rem,4.5vw,1.9rem);line-height:1.25;margin-bottom:24px}
+.opts{display:grid;gap:12px}
+.opt{font:inherit;color:inherit;text-align:left;background:var(--card-solid);border:1.5px solid var(--line);border-radius:16px;padding:15px 18px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:border-color .15s,transform .15s}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateX(4px)}
+.opt:disabled{cursor:default}
+.k{width:30px;height:30px;border-radius:10px;background:var(--line);display:grid;place-items:center;font-weight:700;font-size:.85rem;color:var(--accent);flex:none}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--card-solid))}
+.opt.right .k{background:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 11%,var(--card-solid))}
+.opt.wrong .k{background:var(--bad);color:#fff}
+.opt.dim{opacity:.55}
+.note{margin-top:20px;padding:14px 16px;border-radius:14px;display:none}
+.note.show{display:block;animation:rise .3s ease}
+.note.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.note.bad{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)}
+.note b{display:block}
+.btn{font:inherit;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--accent-2),var(--accent));border:0;border-radius:14px;padding:13px 26px;cursor:pointer;box-shadow:0 8px 20px -8px var(--accent);transition:transform .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.alt{background:var(--card-solid);color:var(--accent);box-shadow:none;border:1.5px solid var(--line)}
+.q .btn{margin-top:20px}
+.hide{display:none!important}
+.res{padding:38px 26px;text-align:center}
+.ring{position:relative;width:170px;height:170px;margin:0 auto 14px}
+.ring svg{transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:12;stroke-linecap:round}
+.ring .t{stroke:var(--line)}
+.ring .p{stroke:url(#g);stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1.1s cubic-bezier(.3,.9,.3,1)}
+.ring .g{position:absolute;inset:0;display:grid;place-items:center;font-family:Fraunces,serif;font-size:3.6rem;font-weight:700;color:var(--accent)}
+.res h2{font-size:1.9rem}
+.res p{color:var(--muted);margin:6px auto 14px;max-width:40ch}
+.row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.review{text-align:left;margin-top:30px;display:grid;gap:10px}
+.review h3{font-size:1.15rem}
+.review div{padding:12px 14px;border-radius:14px;background:var(--card-solid);border:1px solid var(--line);font-size:.95rem}
+.review small{display:block;color:var(--muted);margin-top:2px}
+nav{position:sticky;top:0;z-index:5;background:var(--card);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.nav-in{max-width:1000px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font:700 1.4rem Fraunces,serif;color:var(--accent);background:none;border:0;cursor:pointer;display:flex;align-items:center;gap:8px;padding:0}
+.brand i{font-style:normal;width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--accent-2),var(--lime));display:grid;place-items:center;font-size:1rem;color:#fff}
+.links{display:flex;align-items:center;gap:4px}
+.links button.l{font:inherit;font-weight:500;color:var(--text);background:none;border:0;padding:8px 12px;border-radius:10px;cursor:pointer}
+.links button.l:hover{background:var(--line)}
+.links .btn{padding:9px 18px;margin:0;font-size:.95rem}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:36px;align-items:center;padding:56px 0 24px}
+.hero h1{font-size:clamp(2.5rem,7vw,4rem)}
+.hero .sub{font-size:1.15rem;margin:16px 0 26px}
+.pill{display:inline-block;font-weight:700;font-size:.85rem;color:var(--accent);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 14px;margin-bottom:16px}
+.mock{padding:22px;transform:rotate(2deg);max-width:380px;justify-self:center;width:100%}
+.mock b{font-family:Fraunces,serif;font-size:1.2rem;display:block;margin-bottom:12px}
+.mock .o{padding:10px 14px;border:1.5px solid var(--line);border-radius:12px;margin-top:8px;background:var(--card-solid);font-size:.95rem}
+.mock .o.r{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--card-solid));font-weight:700}
+.stats{display:flex;gap:28px;flex-wrap:wrap;margin-top:30px}
+.stats b{font:700 1.7rem Fraunces,serif;color:var(--accent);display:block;line-height:1.1}
+.stats span{color:var(--muted);font-size:.9rem}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.step{padding:24px}
+.step .n{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent-2),var(--lime));color:#fff;font-weight:700;display:grid;place-items:center;margin-bottom:12px}
+.step h4{font:700 1.15rem Fraunces,serif;margin:0 0 4px}
+.step p{margin:0;color:var(--muted);font-size:.95rem}
+.cta{margin-top:56px;padding:44px 24px;text-align:center;background:linear-gradient(135deg,#12803c,#2fb45c);color:#fff;border:0}
+.cta h2{font-size:clamp(1.7rem,5vw,2.4rem);color:#fff}
+.cta p{margin:8px 0 20px;opacity:.92}
+.cta .btn{background:#fff;color:#12632f;box-shadow:none}
+footer{border-top:1px solid var(--line);background:var(--card);margin-top:30px}
+.foot{max-width:1000px;margin:0 auto;padding:26px 20px calc(26px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:.92rem}
+.foot .brand{font-size:1.15rem}
+@media(max-width:560px){.links button.l{display:none}}
+/* maker */
+.mk{padding:26px 24px;display:grid;gap:14px}
+label{font-weight:700;font-size:.92rem;display:grid;gap:6px}
+input[type=text]{font:inherit;color:var(--text);background:var(--card-solid);border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;width:100%}
+input[type=text]:focus{outline:none;border-color:var(--accent)}
+.ans{display:flex;align-items:center;gap:10px}
+.ans input[type=radio]{accent-color:var(--accent);width:20px;height:20px;flex:none}
+.hint{font-size:.85rem;color:var(--muted);margin:0}
+.err{color:var(--bad);font-weight:700;min-height:1.2em;margin:0}
+.added{display:grid;gap:8px}
+.added div{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 14px;background:var(--card-solid);border:1px solid var(--line);border-radius:12px;font-size:.95rem}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--accent);color:#fff;padding:10px 18px;border-radius:12px;font-weight:700;z-index:9;animation:rise .3s}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<nav><div class="nav-in">
+  <button class="brand" id="brand"><i>✓</i>Pop Quiz</button>
+  <div class="links"><button class="l" id="n-home">Home</button><button class="l" id="n-classes">Classes</button><button class="l" id="n-how">How it works</button><button class="btn" id="n-create">Create a quiz</button></div>
+</div></nav>
+<div class="wrap">
+  <section id="home">
+    <div class="hero">
+      <div>
+        <span class="pill">Free quizzes for every class</span>
+        <h1>Study smarter. Quiz yourself and your friends.</h1>
+        <p class="sub">Play ready-made quizzes in Science, Math, History and Geography, or build your own in a minute and share it with a code.</p>
+        <div class="row" style="justify-content:flex-start"><button class="btn" id="make-btn">Create a quiz</button><button class="btn alt" id="hero-play">Start playing</button></div>
+        <div class="stats"><div><b>4</b><span>subjects</span></div><div><b>20+</b><span>questions</span></div><div><b>∞</b><span>quizzes you can make</span></div></div>
+      </div>
+      <div class="card mock" aria-hidden="true"><b>What is H₂O commonly known as?</b><div class="o">Salt</div><div class="o r">Water ✓</div><div class="o">Hydrogen</div><div class="o">Acid</div></div>
+    </div>
+    <div class="sec" id="classes"><h3>Pick a class</h3></div>
+    <div class="subjects" id="subjects"></div>
+    <div class="sec"><h3>My quizzes</h3><div class="row"><button class="chip" id="import">Import share code</button></div></div>
+    <div class="subjects" id="mine"></div>
+    <div class="sec" id="how"><h3>How it works</h3></div>
+    <div class="steps">
+      <div class="card step"><div class="n">1</div><h4>Pick or create</h4><p>Choose a class quiz, or write your own questions with four answers each.</p></div>
+      <div class="card step"><div class="n">2</div><h4>Play and learn</h4><p>Get instant feedback and a short explanation after every answer.</p></div>
+      <div class="card step"><div class="n">3</div><h4>Share with friends</h4><p>Copy a share code so classmates can import your quiz and play it too.</p></div>
+    </div>
+    <div class="card cta"><h2>Ready to make your own quiz?</h2><p>It only takes a minute to write your first question.</p><button class="btn" id="cta-btn">Create a quiz</button></div>
+  </section>
+
+  <section id="play" class="hide">
+    <div class="top"><button class="back" id="back" aria-label="Back to home">← Home</button><div class="bar"><i id="fill"></i></div><span class="meta" id="count"></span></div>
+    <div class="card q" id="qcard">
+      <h2 id="qtext"></h2>
+      <div class="opts" id="opts"></div>
+      <div class="note" id="note" aria-live="polite"></div>
+      <button class="btn hide" id="next">Next question</button>
+    </div>
+  </section>
+
+  <section id="done" class="hide">
+    <div class="card res">
+      <div class="ring">
+        <svg width="170" height="170" viewBox="0 0 170 170"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16a34a"/><stop offset="1" stop-color="#a3d934"/></linearGradient></defs>
+        <circle class="t" cx="85" cy="85" r="70"/><circle class="p" id="arc" cx="85" cy="85" r="70"/></svg>
+        <div class="g" id="letter"></div>
+      </div>
+      <h2 id="score"></h2>
+      <p id="msg"></p>
+      <div class="row">
+        <button class="btn" id="retry">Play again</button>
+        <button class="btn alt" id="home-btn">Back home</button>
+      </div>
+      <div class="review" id="review"></div>
+    </div>
+  </section>
+
+  <section id="maker" class="hide">
+    <div class="top"><button class="back" id="mback">← Home</button></div>
+    <h2 style="font-size:2rem;margin-bottom:14px">Create a quiz</h2>
+    <div class="card mk">
+      <label>Quiz title<input type="text" id="mt" maxlength="40" placeholder="e.g. Chapter 4 review"></label>
+      <div class="added" id="added"></div>
+      <h3 style="font-size:1.15rem" id="mh">Question 1</h3>
+      <label>Question<input type="text" id="mq" maxlength="140" placeholder="Type your question"></label>
+      <p class="hint">Fill in four answers and tick the correct one.</p>
+      <div class="ans"><input type="radio" name="c" value="0" checked aria-label="Option A is correct"><input type="text" class="mo" maxlength="80" placeholder="Answer A"></div>
+      <div class="ans"><input type="radio" name="c" value="1" aria-label="Option B is correct"><input type="text" class="mo" maxlength="80" placeholder="Answer B"></div>
+      <div class="ans"><input type="radio" name="c" value="2" aria-label="Option C is correct"><input type="text" class="mo" maxlength="80" placeholder="Answer C"></div>
+      <div class="ans"><input type="radio" name="c" value="3" aria-label="Option D is correct"><input type="text" class="mo" maxlength="80" placeholder="Answer D"></div>
+      <label>Explanation (optional)<input type="text" id="me" maxlength="160" placeholder="Why is it correct?"></label>
+      <p class="err" id="err" aria-live="polite"></p>
+      <div class="row" style="justify-content:flex-start">
+        <button class="btn alt" id="addq">Add question</button>
+        <button class="btn" id="save">Save quiz</button>
+      </div>
+    </div>
+  </section>
+</div>
+<footer><div class="foot"><button class="brand" id="f-brand"><i>✓</i>Pop Quiz</button><span>Made for students. Your quizzes are saved in this browser.</span></div></footer>
+
+<script>
+const BUILT={
+  Science:{ico:"🔬",hue:"#bdeedd",q:[
+    ["Which planet is closest to the Sun?",["Venus","Mercury","Mars","Earth"],1,"Mercury orbits closest, at about 58 million km."],
+    ["What gas do plants take in for photosynthesis?",["Oxygen","Nitrogen","Carbon dioxide","Helium"],2,"Plants take in CO₂ and release oxygen."],
+    ["What is H₂O commonly known as?",["Salt","Water","Hydrogen","Acid"],1,"Two hydrogen atoms plus one oxygen make water."],
+    ["Which organ pumps blood around the body?",["Lungs","Liver","Brain","Heart"],3,"The heart pumps blood through the circulatory system."],
+    ["What force pulls objects toward Earth?",["Magnetism","Friction","Gravity","Inertia"],2,"Gravity pulls everything with mass together."]]},
+  Math:{ico:"📐",hue:"#d4f2a8",q:[
+    ["What is 12 × 8?",["96","86","108","88"],0,"12 × 8 = 96."],
+    ["What is the value of 3² + 4²?",["14","25","49","7"],1,"9 + 16 = 25."],
+    ["What do a triangle's interior angles add up to?",["90°","360°","180°","270°"],2,"They always sum to 180°."],
+    ["What is 15% of 200?",["20","25","15","30"],3,"0.15 × 200 = 30."],
+    ["Which of these is a prime number?",["21","27","31","33"],2,"31 divides only by 1 and itself."]]},
+  History:{ico:"🏛️",hue:"#c9ecc0",q:[
+    ["Who was the first President of the United States?",["Abraham Lincoln","George Washington","Thomas Jefferson","John Adams"],1,"Washington took office in 1789."],
+    ["Which civilization built the pyramids at Giza?",["Romans","Greeks","Egyptians","Aztecs"],2,"The Egyptians built them over 4,500 years ago."],
+    ["In what year did World War II end?",["1918","1939","1945","1963"],2,"The war ended in 1945."],
+    ["Who sailed to the Americas in 1492?",["Magellan","Columbus","Cook","Drake"],1,"Christopher Columbus reached the Caribbean."],
+    ["The Renaissance began in which country?",["Italy","France","Spain","England"],0,"It began in Italian cities such as Florence."]]},
+  Geography:{ico:"🌍",hue:"#b8ebe0",q:[
+    ["What is the largest ocean on Earth?",["Atlantic","Indian","Arctic","Pacific"],3,"The Pacific covers about a third of the planet."],
+    ["Which continent is the Sahara Desert in?",["Asia","Africa","Australia","South America"],1,"The Sahara spans northern Africa."],
+    ["What is the capital of Japan?",["Kyoto","Osaka","Tokyo","Seoul"],2,"Tokyo has been the capital since 1868."],
+    ["Which is the longest river in South America?",["Amazon","Nile","Danube","Mekong"],0,"The Amazon is South America's longest river."],
+    ["How many continents are there?",["5","6","8","7"],3,"Africa, Antarctica, Asia, Australia, Europe, North America and South America."]]}
+};
+const HUES=["#bdeedd","#d4f2a8","#c9ecc0","#b8ebe0","#e2f5a6"],ICOS=["✏️","📚","🧠","⭐","🎯","💡"];
+const $=id=>document.getElementById(id);
+const show=n=>["home","play","done","maker"].forEach(s=>$(s).classList.toggle("hide",s!==n));
+let mine=[];try{mine=JSON.parse(localStorage.getItem("popquiz.mine")||"[]")}catch(e){}
+const persist=()=>{try{localStorage.setItem("popquiz.mine",JSON.stringify(mine))}catch(e){}};
+function toast(t){const d=document.createElement("div");d.className="toast";d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2200)}
+
+function tile(z,play,tools){
+  const c=document.createElement("div");c.className="card subj";c.style.setProperty("--h",z.hue);
+  c.innerHTML=`<button class="go"><div class="ico">${z.ico}</div><b></b><span>${z.q.length} question${z.q.length>1?"s":""}</span></button>`;
+  c.querySelector("b").textContent=z.title;c.querySelector(".go").onclick=play;
+  if(tools){const t=document.createElement("div");t.className="tools";tools.forEach(([l,f,cl])=>{const b=document.createElement("button");b.className="chip "+(cl||"");b.textContent=l;b.onclick=f;t.appendChild(b)});c.appendChild(t)}
+  return c;
+}
+function home(){
+  $("subjects").innerHTML="";$("mine").innerHTML="";
+  Object.keys(BUILT).forEach(k=>$("subjects").appendChild(tile({...BUILT[k],title:k},()=>start(k,BUILT[k].q))));
+  if(!mine.length)$("mine").innerHTML='<div class="empty" style="grid-column:1/-1">No quizzes yet. Tap “Create a quiz” to make your first one.</div>';
+  mine.forEach((z,n)=>$("mine").appendChild(tile(z,()=>start(z.title,z.q),[["Share",()=>share(z)],["Delete",()=>{if(confirm("Delete “"+z.title+"”?")){mine.splice(n,1);persist();home()}},"del"]])));
+  show("home");
+}
+function share(z){
+  const code=btoa(unescape(encodeURIComponent(JSON.stringify({t:z.title,q:z.q}))));
+  (navigator.clipboard?navigator.clipboard.writeText(code):Promise.reject()).then(()=>toast("Share code copied")).catch(()=>prompt("Copy this share code:",code));
+}
+$("import").onclick=()=>{
+  const code=prompt("Paste a share code:");if(!code)return;
+  try{const d=JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+    if(!d.t||!Array.isArray(d.q)||!d.q.length)throw 0;
+    mine.push({title:String(d.t).slice(0,40),ico:ICOS[mine.length%6],hue:HUES[mine.length%5],q:d.q.slice(0,50).map(x=>[String(x[0]),x[1].map(String),+x[2],String(x[3]||"")])});
+    persist();home();toast("Quiz imported");
+  }catch(e){toast("That code didn’t work")}
+};
+
+/* play */
+let qs,i,score,missed,cur;
+function start(t,q){cur={t,q};qs=[...q].sort(()=>Math.random()-.5);i=0;score=0;missed=[];show("play");render()}
+function render(){
+  const [q,opts]=qs[i];
+  $("qtext").textContent=q;$("note").className="note";$("next").classList.add("hide");
+  $("count").textContent=`${i+1} / ${qs.length}`;$("fill").style.width=((i+1)/qs.length*100)+"%";
+  $("opts").innerHTML="";
+  opts.forEach((t,n)=>{const b=document.createElement("button");b.className="opt";b.innerHTML=`<span class="k">${"ABCD"[n]}</span><span></span>`;b.lastChild.textContent=t;b.onclick=()=>pick(n);$("opts").appendChild(b)});
+  const c=$("qcard");c.style.animation="none";c.offsetWidth;c.style.animation="";
+}
+function pick(n){
+  const [q,opts,ans,why]=qs[i];
+  [...$("opts").children].forEach((b,k)=>{b.disabled=true;b.classList.add(k===ans?"right":k===n?"wrong":"dim")});
+  const ok=n===ans;if(ok)score++;else missed.push([q,opts[ans],opts[n]]);
+  $("note").className="note show "+(ok?"ok":"bad");
+  $("note").innerHTML=`<b>${ok?"Correct!":"Not quite."}</b>`;if(why)$("note").append(why);
+  $("next").textContent=i===qs.length-1?"See my grade":"Next question";$("next").classList.remove("hide");$("next").focus();
+}
+$("next").onclick=()=>{i++;i<qs.length?render():finish()};
+function finish(){
+  const p=score/qs.length;
+  $("letter").textContent=p===1?"A+":p>=.8?"A":p>=.6?"B":p>=.4?"C":"D";
+  $("score").textContent=`${score} out of ${qs.length} correct`;
+  $("msg").textContent=p===1?"Perfect score. Nothing to review.":p>=.6?"Nice work. Look over the misses below and go again.":"Good start. Read the answers below, then try once more.";
+  $("review").innerHTML=missed.length?"<h3>Review</h3>":"";
+  missed.forEach(m=>{const d=document.createElement("div");d.innerHTML="<b></b><small></small>";d.firstChild.textContent=m[0];d.lastChild.textContent=`You chose ${m[2]}. Correct answer: ${m[1]}.`;$("review").appendChild(d)});
+  show("done");const a=$("arc");a.style.strokeDashoffset=440;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>a.style.strokeDashoffset=440*(1-p)));
+}
+$("retry").onclick=()=>start(cur.t,cur.q);
+["home-btn","back","mback"].forEach(id=>$(id).onclick=home);
+
+/* maker */
+let draft=[];
+const opts=()=>[...document.querySelectorAll(".mo")];
+function mrender(){
+  $("mh").textContent="Question "+(draft.length+1);
+  $("added").innerHTML="";
+  draft.forEach((d,n)=>{const r=document.createElement("div");r.innerHTML="<span></span><button class='chip del'>Remove</button>";r.firstChild.textContent=(n+1)+". "+d[0];r.lastChild.onclick=()=>{draft.splice(n,1);mrender()};$("added").appendChild(r)});
+}
+function readQ(){
+  const q=$("mq").value.trim(),o=opts().map(x=>x.value.trim());
+  if(!q){$("err").textContent="Type a question first.";return null}
+  if(o.some(x=>!x)){$("err").textContent="Fill in all four answers.";return null}
+  if(new Set(o.map(x=>x.toLowerCase())).size<4){$("err").textContent="Each answer needs to be different.";return null}
+  $("err").textContent="";
+  return [q,o,+document.querySelector("input[name=c]:checked").value,$("me").value.trim()];
+}
+function clearQ(){$("mq").value="";$("me").value="";opts().forEach(x=>x.value="");document.querySelector("input[name=c]").checked=true;$("mq").focus()}
+$("make-btn").onclick=()=>{draft=[];$("mt").value="";clearQ();$("err").textContent="";mrender();show("maker");$("mt").focus()};
+$("addq").onclick=()=>{const q=readQ();if(q){draft.push(q);mrender();clearQ()}};
+$("save").onclick=()=>{
+  const title=$("mt").value.trim();
+  if(!title){$("err").textContent="Give your quiz a title.";return}
+  if($("mq").value.trim()||opts().some(x=>x.value.trim())){const q=readQ();if(!q)return;draft.push(q)}
+  if(!draft.length){$("err").textContent="Add at least one question.";return}
+  mine.push({title,ico:ICOS[mine.length%6],hue:HUES[mine.length%5],q:draft});persist();home();toast("Quiz saved");
+};
+const go=id=>{home();setTimeout(()=>$(id).scrollIntoView({behavior:"smooth"}),30)};
+$("brand").onclick=$("f-brand").onclick=$("n-home").onclick=()=>{home();scrollTo({top:0,behavior:"smooth"})};
+$("n-classes").onclick=$("hero-play").onclick=()=>go("classes");
+$("n-how").onclick=()=>go("how");
+$("n-create").onclick=$("cta-btn").onclick=()=>{$("make-btn").click();scrollTo(0,0)};
+home();
+</script>
+</body>
+</html>
